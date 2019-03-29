@@ -1,0 +1,10 @@
+.swiper-img-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: rgba(121, 121, 121, 0.5);
+    width: 100%;
+    padding: 20px;
+    color: white;
+    margin: 0px;
+}
