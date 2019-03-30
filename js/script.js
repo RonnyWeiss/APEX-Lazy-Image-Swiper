@@ -1,6 +1,6 @@
 var apexImageSlider = (function () {
     "use strict";
-    var scriptVersion = "1.1";
+    var scriptVersion = "1.1.1";
     var util = {
         version: "1.0.5",
         isAPEX: function () {
@@ -277,13 +277,7 @@ var apexImageSlider = (function () {
                     autoHeight: true,
                     preloadImages: false,
                     zoom: false,
-                    coverflowEffect: {
-                        rotate: 70,
-                        stretch: 0,
-                        depth: 200,
-                        modifier: 1,
-                        slideShadows: false,
-                    },
+                    coverflowEffect: pConfigJSON.coverflowEffectSettings,
                     lazy: {
                         loadPrevNext: true,
                         loadPrevNextAmount: 2,
@@ -367,9 +361,16 @@ var apexImageSlider = (function () {
                 "keyboardControl": true,
                 "loop": true,
                 "mousewheelControl": true,
-                "pagination": true,
+                "pagination": false,
                 "regionMinHeight": "600px",
-                "scrollBar": false
+                "scrollBar": false,
+                "coverflowEffectSettings": {
+                    "rotate": 90,
+                    "stretch": 0,
+                    "depth": 100,
+                    "modifier": 1,
+                    "slideShadows": true
+                }
             };
             var configJSON = {};
 
