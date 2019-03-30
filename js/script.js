@@ -158,17 +158,21 @@ var apexImageSlider = (function () {
                     img.css("display", "block");
                     img.css("margin", "0 auto");
                     img.addClass("swiper-lazy");
-                    if (item.ACTION_TYPE && item.ACTION) {
+                    if (item.ACTION_TYPE) {
                         img.dblclick(function () {
                             if (item.ACTION_TYPE === "javascript") {
-                                try {
-                                    eval(item.ACTION);
-                                } catch (e) {
-                                    util.debug.error("Error while try to execute javascript from SQL");
-                                    util.debug.error(e);
+                                if (item.ACTION) {
+                                    try {
+                                        eval(item.ACTION);
+                                    } catch (e) {
+                                        util.debug.error("Error while try to execute javascript from SQL");
+                                        util.debug.error(e);
+                                    }
                                 }
                             } else if (item.ACTION_TYPE === "link") {
-                                util.link(item.ACTION);
+                                if (item.ACTION) {
+                                    util.link(item.ACTION);
+                                }
                             } else if (item.ACTION_TYPE === "like") {
                                 $("#" + pConfigJSON.regionID).trigger("like", [item, this]);
                                 eval(item.ACTION);
@@ -190,7 +194,9 @@ var apexImageSlider = (function () {
                                     heart.remove();
                                 }, 2000);
                             } else {
-                                util.link(item.ACTION, true);
+                                if (item.ACTION) {
+                                    util.link(item.ACTION, true);
+                                }
                             }
                         });
                     }
