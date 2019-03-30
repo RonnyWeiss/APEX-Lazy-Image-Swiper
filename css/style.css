@@ -8,3 +8,15 @@
     color: white;
     margin: 0px;
 }
+
+.swiper-like-heart {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -30px;
+    margin-top: -60px;
+    color: rgba(192, 0, 15, 0.8);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    opacity: 0;
+}

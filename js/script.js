@@ -1,6 +1,6 @@
 var apexImageSlider = (function () {
     "use strict";
-    var scriptVersion = "1.0";
+    var scriptVersion = "1.1";
     var util = {
         version: "1.0.5",
         isAPEX: function () {
@@ -123,6 +123,11 @@ var apexImageSlider = (function () {
         }
     };
 
+    /***********************************************************************
+     **
+     ** Used to draw the region
+     **
+     ***********************************************************************/
     function drawSlideRegion(pData, pConfigJSON) {
         try {
             var topParentDiv = $(pConfigJSON.parentIDSelector);
@@ -153,13 +158,42 @@ var apexImageSlider = (function () {
                     img.css("display", "block");
                     img.css("margin", "0 auto");
                     img.addClass("swiper-lazy");
-                    if (item.ACTION_LINK && item.ACTION_LINK.length > 0) {
-                        img.attr("action", item.ACTION_LINK);
-                        if (item.ACTION_LINK_IN_NEW_TAB === 1) {
-                            img.attr("action-target", "_blank");
-                        }
+                    if (item.ACTION_TYPE && item.ACTION) {
+                        img.dblclick(function () {
+                            if (item.ACTION_TYPE === "javascript") {
+                                try {
+                                    eval(item.ACTION);
+                                } catch (e) {
+                                    util.debug.error("Error while try to execute javascript from SQL");
+                                    util.debug.error(e);
+                                }
+                            } else if (item.ACTION_TYPE === "link") {
+                                util.link(item.ACTION);
+                            } else if (item.ACTION_TYPE === "like") {
+                                $("#" + pConfigJSON.regionID).trigger("like", [item, this]);
+                                eval(item.ACTION);
+                                var heartDiv = $("<div></div>");
+                                heartDiv.addClass("swiper-like-heart");
+                                var heart = $("<span></span>");
+                                heart.addClass("fa fa-heart fa-lg");
+                                heart.css("font-size", "70px");
+                                heartDiv.append(heart);
+                                var par = img.parent();
+                                par.append(heartDiv);
+                                heartDiv.animate({
+                                    opacity: 1
+                                }, 500);
+                                setTimeout(function () {
+                                    heartDiv.animate({
+                                        opacity: 0
+                                    }, 500);
+                                    heart.remove();
+                                }, 2000);
+                            } else {
+                                util.link(item.ACTION, true);
+                            }
+                        });
                     }
-
 
                     if (item.SRC_TYPE == 'blob') {
                         var items2Submit = pConfigJSON.item2Submit;
@@ -263,19 +297,6 @@ var apexImageSlider = (function () {
                         lazyImageReady: function () {
                             util.loader.stop(pConfigJSON.parentIDSelector);
                         },
-                        doubleTap: function () {
-                            if (this && this.clickedSlide && this.clickedSlide.children && this.clickedSlide.children[0]) {
-                                var action = $(this.clickedSlide.children[0]).attr("action");
-                                var target = $(this.clickedSlide.children[0]).attr("action-target");
-                                if (action && action.length > 0) {
-                                    if (target && target === "_blank") {
-                                        util.link(action, true)
-                                    } else {
-                                        util.link(action);
-                                    }
-                                }
-                            }
-                        },
                         slideChange: function () {
                             var _self = this;
                             $.each(_self.slides, function (idx, slide) {
@@ -303,6 +324,11 @@ var apexImageSlider = (function () {
         }
     }
 
+    /***********************************************************************
+     **
+     ** Used to get data from server
+     **
+     ***********************************************************************/
     function getData(pConfigJSON) {
         var items2Submit = pConfigJSON.item2Submit;
         apex.server.plugin(
@@ -321,7 +347,11 @@ var apexImageSlider = (function () {
     }
 
     return {
-
+        /***********************************************************************
+         **
+         ** Initial function
+         **
+         ***********************************************************************/
         initialize: function (pRegionID, pAjaxID, pNoDataMessage, pConfigJSON, pItems2Submit, pRequireHTMLEscape) {
             var stdConfigJSON = {
                 "autoplay": {
@@ -342,6 +372,8 @@ var apexImageSlider = (function () {
                 "scrollBar": false
             };
             var configJSON = {};
+
+            // merge jsons
             configJSON = util.jsonSaveExtend(stdConfigJSON, pConfigJSON);
 
             configJSON.ajaxID = pAjaxID;
@@ -370,6 +402,8 @@ var apexImageSlider = (function () {
 
             getData(configJSON);
 
+
+            // bind refresh event
             $("#" + pRegionID).bind("apexrefresh", function () {
                 getData(configJSON);
             });
