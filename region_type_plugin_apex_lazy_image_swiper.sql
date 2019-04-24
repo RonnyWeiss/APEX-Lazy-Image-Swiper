@@ -24,7 +24,7 @@ end;
 prompt --application/shared_components/plugins/region_type/apex_lazy_image_swiper
 begin
 wwv_flow_api.create_plugin(
- p_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(5665743319844737422)
 ,p_plugin_type=>'REGION TYPE'
 ,p_name=>'APEX.LAZY.IMAGE.SWIPER'
 ,p_display_name=>'APEX Lazy Image Swiper'
@@ -177,7 +177,7 @@ wwv_flow_api.create_plugin(
 '        P_KEY         => ''isjssrc''',
 '    );',
 '',
-'    SYS.HTP.P( ''<div id="'' || P_REGION.STATIC_ID || ''-is">'');',
+'    SYS.HTP.P( ''<div id="'' || APEX_ESCAPE.HTML_ATTRIBUTE ( P_REGION.STATIC_ID ) || ''-is">'');',
 '',
 '    APEX_JAVASCRIPT.ADD_ONLOAD_CODE(''apexImageSlider.initialize('' ||',
 '        APEX_JAVASCRIPT.ADD_VALUE( P_REGION.STATIC_ID, TRUE ) ||',
@@ -197,13 +197,13 @@ wwv_flow_api.create_plugin(
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'This plug-in is a cool image slider for Oracle APEX. It loads the images only when they are needed (Lazy Load) and can load images from a BLOB table or from a URL. The list of images is passed by SQL statement. URL and download of blob tables can be '
 ||'mixed. In addition, a link URL can be passed, which is called if you double click on the displayed image.'
-,p_version_identifier=>'1.1.1'
+,p_version_identifier=>'1.2'
 ,p_about_url=>'https://github.com/RonnyWeiss/APEX-Lazy-Image-Swiper'
 ,p_files_version=>1414
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(2582179765530887961)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(5719110330526837781)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>1
 ,p_display_sequence=>10
@@ -327,8 +327,8 @@ wwv_flow_api.create_plugin_attribute(
 '  <dl>'))
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(2719176117086634060)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(5856106682082583880)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>2
 ,p_display_sequence=>20
@@ -340,8 +340,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_help_text=>'Choose ''No'' if in your SQL Source are only Types with ''url'' or ''Yes'' when in your SQL Source is also Types with ''blob''.'
 );
 wwv_flow_api.create_plugin_attribute(
- p_id=>wwv_flow_api.id(2719249073419637244)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(5856179638415587064)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_attribute_scope=>'COMPONENT'
 ,p_attribute_sequence=>3
 ,p_display_sequence=>30
@@ -388,7 +388,7 @@ wwv_flow_api.create_plugin_attribute(
 '        APEX_DEBUG.ERROR(DBMS_UTILITY.FORMAT_ERROR_STACK);',
 'END;'))
 ,p_is_translatable=>false
-,p_depending_on_attribute_id=>wwv_flow_api.id(2719176117086634060)
+,p_depending_on_attribute_id=>wwv_flow_api.id(5856106682082583880)
 ,p_depending_on_has_to_exist=>true
 ,p_depending_on_condition_type=>'EQUALS'
 ,p_depending_on_expression=>'Y'
@@ -438,8 +438,8 @@ wwv_flow_api.create_plugin_attribute(
 '</pre>'))
 );
 wwv_flow_api.create_plugin_std_attribute(
- p_id=>wwv_flow_api.id(2704686193563209071)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(5841616758559158891)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_name=>'SOURCE_SQL'
 ,p_default_value=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'SELECT',
@@ -708,8 +708,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(3075852782635954627)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(6212783347631904447)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_file_name=>'imageslider.pkgd.min.css'
 ,p_mime_type=>'text/css'
 ,p_file_charset=>'utf-8'
@@ -2095,8 +2095,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(3075853041942954629)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(6212783606938904449)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_file_name=>'imageslider.pkgd.min.js'
 ,p_mime_type=>'text/javascript'
 ,p_file_charset=>'utf-8'
@@ -2122,8 +2122,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(3075854261830955480)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(6212784826826905300)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_file_name=>'LICENSE'
 ,p_mime_type=>'application/octet-stream'
 ,p_file_charset=>'utf-8'
@@ -2150,8 +2150,8 @@ end;
 /
 begin
 wwv_flow_api.create_plugin_file(
- p_id=>wwv_flow_api.id(3075854544493955480)
-,p_plugin_id=>wwv_flow_api.id(2528812754848787602)
+ p_id=>wwv_flow_api.id(6212785109489905300)
+,p_plugin_id=>wwv_flow_api.id(5665743319844737422)
 ,p_file_name=>'LICENSE4LIBS'
 ,p_mime_type=>'application/octet-stream'
 ,p_file_charset=>'utf-8'
