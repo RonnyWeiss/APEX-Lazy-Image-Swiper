@@ -1,8 +1,15 @@
 var apexImageSlider = (function () {
     "use strict";
-    var scriptVersion = "1.1.1";
+    var scriptVersion = "2.0";
     var util = {
-        version: "1.0.5",
+        version: "1.2.9",
+        isDefinedAndNotNull: function (pInput) {
+            if (typeof pInput !== "undefined" && pInput !== null) {
+                return true;
+            } else {
+                return false;
+            }
+        },
         isAPEX: function () {
             if (typeof (apex) !== 'undefined') {
                 return true;
@@ -24,33 +31,11 @@ var apexImageSlider = (function () {
                 }
             }
         },
-        jsonSaveExtend: function (srcConfig, targetConfig) {
-            var finalConfig = {};
-            /* try to parse config json when string or just set */
-            if (typeof targetConfig === 'string') {
-                try {
-                    targetConfig = JSON.parse(targetConfig);
-                } catch (e) {
-                    console.error("Error while try to parse targetConfig. Please check your Config JSON. Standard Config will be used.");
-                    console.error(e);
-                    console.error(targetConfig);
-                }
-            } else {
-                finalConfig = targetConfig;
-            }
-            /* try to merge with standard if any attribute is missing */
-            try {
-                finalConfig = $.extend(true, srcConfig, targetConfig);
-            } catch (e) {
-                console.error('Error while try to merge 2 JSONs into standard JSON if any attribute is missing. Please check your Config JSON. Standard Config will be used.');
-                console.error(e);
-                finalConfig = srcConfig;
-                console.error(finalConfig);
-            }
-            return finalConfig;
-        },
         loader: {
-            start: function (id) {
+            start: function (id, setMinHeight) {
+                if (setMinHeight) {
+                    $(id).css("min-height", "100px");
+                }
                 if (util.isAPEX()) {
                     apex.util.showSpinner($(id));
                 } else {
@@ -58,6 +43,9 @@ var apexImageSlider = (function () {
                     var faLoader = $("<span></span>");
                     faLoader.attr("id", "loader" + id);
                     faLoader.addClass("ct-loader");
+                    faLoader.css("text-align", "center");
+                    faLoader.css("width", "100%");
+                    faLoader.css("display", "block");
 
                     /* define refresh icon with animation */
                     var faRefresh = $("<i></i>");
@@ -72,7 +60,10 @@ var apexImageSlider = (function () {
                     $(id).append(faLoader);
                 }
             },
-            stop: function (id) {
+            stop: function (id, removeMinHeight) {
+                if (removeMinHeight) {
+                    $(id).css("min-height", "");
+                }
                 $(id + " > .u-Processing").remove();
                 $(id + " > .ct-loader").remove();
             }
@@ -129,198 +120,180 @@ var apexImageSlider = (function () {
      **
      ***********************************************************************/
     function drawSlideRegion(pData, pConfigJSON) {
-        try {
-            var topParentDiv = $(pConfigJSON.parentIDSelector);
 
-            topParentDiv.empty();
-            util.noDataMessage.hide(pConfigJSON.parentIDSelector);
+        util.debug.info({
+            "module": "drawSlideRegion",
+            "pData": pData,
+            "pConfigJSON": pConfigJSON
+        });
 
-            if (pData.row && pData.row.length > 0) {
-                var parentDiv = $("<div></div>");
-                parentDiv.addClass("swiper-container");
-                parentDiv.attr("id", pConfigJSON.regionID + "-sd");
-                parentDiv.css("min-height", pConfigJSON.regionMinHeight);
+        if (pData.row && pData.row.length > 0) {
+            var itemData = pData.row;
+            var htmlIDX = 0;
+            var timeOut;
 
-                topParentDiv.append(parentDiv);
+            var htmlDiv = $("<div></div>");
+            htmlDiv.addClass("swiper-item-html-container");
+            htmlDiv.attr("id", pConfigJSON.regionID + "-sd");
+            htmlDiv.css("background-color", pConfigJSON.backgroundColor || "transparen");
 
-                var wrapperDiv = $("<div></div>");
-                wrapperDiv.addClass("swiper-wrapper");
-                wrapperDiv.css("height", "maxHeight");
+            $(pConfigJSON.parentIDSelector).append(htmlDiv);
 
-                $.each(pData.row, function (idx, item) {
-                    var slideDiv = $("<div></div>");
-                    slideDiv.addClass("swiper-slide");
+            function prepareHTMLRender() {
+                htmlDiv.find(".swiper-img-container").remove();
 
-                    var img = $("<img>");
+                var imgDiv = $("<div></div>");
+                imgDiv.addClass("swiper-img-container");
+                imgDiv.css("background-size", pConfigJSON.imageSize);
+                imgDiv.hide();
 
-                    img.css("max-width", pConfigJSON.imgMaxWidth);
-                    img.css("max-height", pConfigJSON.imgMaxHeight);
-                    img.css("display", "block");
-                    img.css("margin", "0 auto");
-                    img.addClass("swiper-lazy");
-                    if (item.ACTION_TYPE) {
-                        img.dblclick(function () {
-                            if (item.ACTION_TYPE === "javascript") {
-                                if (item.ACTION) {
-                                    try {
-                                        eval(item.ACTION);
-                                    } catch (e) {
-                                        util.debug.error("Error while try to execute javascript from SQL");
-                                        util.debug.error(e);
-                                    }
-                                }
-                            } else if (item.ACTION_TYPE === "link") {
-                                if (item.ACTION) {
-                                    util.link(item.ACTION);
-                                }
-                            } else if (item.ACTION_TYPE === "like") {
-                                $("#" + pConfigJSON.regionID).trigger("like", [item, this]);
-                                eval(item.ACTION);
-                                var heartDiv = $("<div></div>");
-                                heartDiv.addClass("swiper-like-heart");
-                                var heart = $("<span></span>");
-                                heart.addClass("fa fa-heart fa-lg");
-                                heart.css("font-size", "70px");
-                                heartDiv.append(heart);
-                                var par = img.parent();
-                                par.append(heartDiv);
-                                heartDiv.animate({
-                                    opacity: 1
-                                }, 500);
-                                setTimeout(function () {
-                                    heartDiv.animate({
-                                        opacity: 0
-                                    }, 500);
-                                    heart.remove();
-                                }, 2000);
-                            } else {
-                                if (item.ACTION) {
-                                    util.link(item.ACTION, true);
-                                }
-                            }
+                htmlDiv.prepend(imgDiv);
+
+                if (htmlIDX > (itemData.length - 1)) {
+                    htmlIDX = 0;
+                } else if (htmlIDX < 0) {
+                    htmlIDX = itemData.length - 1;
+                }
+
+                if (itemData[htmlIDX]) {
+                    var item = itemData[htmlIDX];
+                    if (util.isDefinedAndNotNull(item.LINK)) {
+                        imgDiv.css("cursor", "pointer");
+                        imgDiv.on("click", function () {
+                            util.link(item.LINK);
                         });
                     }
+
+                    /*     if (util.isDefinedAndNotNull(item.SRC_TITLE)) {
+                             var imgTitle = $("<h3></h3>");
+                             imgTitle.addClass("swiper-img-title");
+                             if (pConfigJSON.escapeHTMLRequired) {
+                                 imgTitle.text(item.SRC_TITLE);
+                             } else {
+                                 imgTitle.html(item.SRC_TITLE);
+                             }
+                             imgDiv.append(imgTitle);
+                         }*/
+
+                    var imgSRC = item.SRC_VALUE;
 
                     if (item.SRC_TYPE == 'blob') {
                         var items2Submit = pConfigJSON.item2Submit;
-                        var imgSRC = apex.server.pluginUrl(pConfigJSON.ajaxID, {
+                        imgSRC = apex.server.pluginUrl(pConfigJSON.ajaxID, {
                             x01: "GET_IMAGE",
-                            x02: item.SRC_VALUE,
+                            x02: imgSRC,
                             pageItems: items2Submit
                         });
-
-                        //slideDiv.css("background-image", "url(" + imgSRC + ")");
-                        img.attr("data-src", imgSRC);
-                    } else {
-                        //slideDiv.css("background-image", "url(" + item.VALUE + ")");
-                        img.attr("data-src", item.SRC_VALUE);
                     }
 
-                    slideDiv.append(img);
+                    imgDiv.css("background-image", "url(" + imgSRC + ")");
 
-                    if (item.SRC_TITLE && item.SRC_TITLE.length > 0) {
-                        var imgTitle = $("<h3></h3>");
-                        imgTitle.addClass("swiper-img-title");
-                        if (pConfigJSON.escapeHTMLRequired) {
-                            imgTitle.text(item.SRC_TITLE);
-                        } else {
-                            imgTitle.html(item.SRC_TITLE);
+                    $(imgDiv).fadeIn("fast");
+
+                    /* make it auto play when duration is set */
+                    var cur = item;
+                    var dur = cur.DURATION;
+                    if (dur && dur > 0) {
+                        function setTimeOut(pPreventSetIDX) {
+                            timeOut = setTimeout(function () {
+                                htmlIDX++;
+                                $(imgDiv).fadeOut("fast", function () {
+                                    prepareHTMLRender();
+                                });
+                            }, dur * 1000);
                         }
-                        imgTitle.hide();
-                        slideDiv.append(imgTitle);
+
+                        $(htmlDiv).hover(function () {
+                            clearTimeout(timeOut);
+                        });
+
+                        $(htmlDiv).mouseleave(function () {
+                            setTimeOut();
+                        });
+
+                        setTimeOut();
                     }
+                }
+            }
 
-                    wrapperDiv.append(slideDiv);
+            /* go to next img */
+            function goDown() {
+                htmlIDX++;
+                clearTimeout(timeOut);
+                $(htmlDiv).find(".swiper-img-container").fadeOut("fast", function () {
+                    prepareHTMLRender();
+                });
+            }
 
+            /* go to previous img */
+            function goUp() {
+                htmlIDX--;
+                clearTimeout(timeOut);
+                $(htmlDiv).find(".swiper-img-container").fadeOut("fast", function () {
+                    prepareHTMLRender();
+                });
+            }
+
+            /* bind mouswheel */
+            if ($.inArray("mousewheel", pConfigJSON.controls) >= 0) {
+                $(pConfigJSON.parentIDSelector).bind('mousewheel DOMMouseScroll', function (event) {
+                    event.preventDefault();
+                    if (event.originalEvent.wheelDelta >= 0) {
+                        goUp();
+                    } else {
+                        goDown()
+                    }
+                });
+            }
+
+            /* bind arrow keys */
+            if ($.inArray("keyboard", pConfigJSON.controls) >= 0) {
+                $("body").keydown(function (e) {
+                    if (e.keyCode == 37) {
+                        goUp();
+                    } else if (e.keyCode == 39) {
+                        goDown();
+                    }
+                });
+            }
+
+            /* add control buttons for slide */
+            if ($.inArray("arrows", pConfigJSON.controls) >= 0) {
+                var leftControl = $("<div></div>");
+                leftControl.addClass("swiper-item-html-slide-lc");
+                leftControl.on("click", function () {
+                    goUp()
                 });
 
-                parentDiv.append(wrapperDiv);
+                var leftControlIcon = $("<span></span>");
+                leftControlIcon.addClass("fa fa-chevron-left fa-lg");
+                leftControlIcon.addClass("swiper-item-html-slide-lc-s");
+                leftControl.append(leftControlIcon);
 
-                if (pConfigJSON.pagination) {
-                    var paginationDiv = $("<div></div>");
-                    paginationDiv.addClass("swiper-pagination swiper-pagination-" + pConfigJSON.buttonColor);
+                $(htmlDiv).append(leftControl);
 
-                    parentDiv.append(paginationDiv);
-                }
+                var rightControl = $("<div></div>");
+                rightControl.addClass("swiper-item-html-slide-rc");
+                rightControl.on("click", function () {
+                    goDown();
+                });
 
-                if (pConfigJSON.controlButtons) {
-                    var prevButton = $("<div></div>");
-                    prevButton.addClass("swiper-button-prev swiper-button-" + pConfigJSON.buttonColor);
-                    parentDiv.append(prevButton);
+                var rightControlIcon = $("<span></span>");
+                rightControlIcon.addClass("fa fa-chevron-right fa-lg");
+                rightControlIcon.addClass("swiper-item-html-slide-rc-s");
+                rightControl.append(rightControlIcon);
 
-                    var nextButton = $("<div></div>");
-                    nextButton.addClass("swiper-button-next swiper-button-" + pConfigJSON.buttonColor);
-                    parentDiv.append(nextButton);
-                }
-
-                if (pConfigJSON.scrollBar) {
-                    var scrollBarDiv = $("<div></div>");
-                    scrollBarDiv.addClass("swiper-scrollbar");
-
-                    parentDiv.append(scrollBarDiv);
-                }
-
-                var swiperJSON = {
-                    navigation: {
-                        nextEl: '.swiper-button-next',
-                        prevEl: '.swiper-button-prev',
-                    },
-                    keyboard: {
-                        enabled: pConfigJSON.keyboardControl,
-                    },
-                    pagination: {
-                        el: '.swiper-pagination',
-                        clickable: true,
-                    },
-                    scrollbar: {
-                        el: '.swiper-scrollbar',
-                    },
-                    loop: pConfigJSON.loop,
-                    grabCursor: true,
-                    effect: pConfigJSON.effect,
-                    centeredSlides: true,
-                    slidesPerView: 2,
-                    autoHeight: true,
-                    preloadImages: false,
-                    zoom: false,
-                    coverflowEffect: pConfigJSON.coverflowEffectSettings,
-                    lazy: {
-                        loadPrevNext: true,
-                        loadPrevNextAmount: 2,
-                        loadOnTransitionStart: true
-                    },
-                    on: {
-                        lazyImageLoad: function () {
-                            util.loader.stop(pConfigJSON.parentIDSelector);
-                            util.loader.start(pConfigJSON.parentIDSelector);
-                        },
-                        lazyImageReady: function () {
-                            util.loader.stop(pConfigJSON.parentIDSelector);
-                        },
-                        slideChange: function () {
-                            var _self = this;
-                            $.each(_self.slides, function (idx, slide) {
-                                $(slide).find(".swiper-img-title").hide();
-                                if (idx === _self.activeIndex) {
-                                    $(slide).find(".swiper-img-title").show();
-                                }
-                            });
-                        }
-                    },
-                    mousewheel: pConfigJSON.mousewheelControl,
-                };
-
-                if (pConfigJSON.autoplay.enabled) {
-                    swiperJSON.autoplay = pConfigJSON.autoplay;
-                }
-                var id = "#" + pConfigJSON.regionID + "-sd";
-                var mySwiper = new Swiper(id, swiperJSON);
-            } else {
-                util.noDataMessage.show(pConfigJSON.parentIDSelector, pConfigJSON.noDataMessage);
+                /* append control buttons */
+                $(htmlDiv).append(rightControl);
             }
-        } catch (e) {
-            util.debug.error("Error while try to drive image slider");
-            util.debug.error(e);
+
+            /* render imgages */
+            prepareHTMLRender();
+
+            util.loader.stop(pConfigJSON.parentIDSelector);
+
+        } else {
+            util.noDataMessage.show(pConfigJSON.parentIDSelector, pConfigJSON.noDataMessage);
         }
     }
 
@@ -330,7 +303,11 @@ var apexImageSlider = (function () {
      **
      ***********************************************************************/
     function getData(pConfigJSON) {
+
+        /* cleanup */
+        $(pConfigJSON.parentIDSelector).empty();
         var items2Submit = pConfigJSON.item2Submit;
+
         apex.server.plugin(
             pConfigJSON.ajaxID, {
                 x01: "GET_SQL_SOURCE",
@@ -340,7 +317,11 @@ var apexImageSlider = (function () {
                     drawSlideRegion(pData, pConfigJSON);
                 },
                 error: function (d) {
-                    util.debug.error(d.responseText);
+                    util.noDataMessage.show(pConfigJSON.parentIDSelector, "Error occured!");
+                    util.debug.error({
+                        "msg": d.responseText,
+                        "err": d
+                    });
                 },
                 dataType: "json"
             });
@@ -352,63 +333,42 @@ var apexImageSlider = (function () {
          ** Initial function
          **
          ***********************************************************************/
-        initialize: function (pRegionID, pAjaxID, pNoDataMessage, pConfigJSON, pItems2Submit, pRequireHTMLEscape) {
-            var stdConfigJSON = {
-                "autoplay": {
-                    "delay": 2500,
-                    "disableOnInteraction": false,
-                    "enabled": false
-                },
-                "buttonColor": "white",
-                "controlButtons": true,
-                "effect": "coverflow",
-                "imgMaxHeight": "600px",
-                "imgMaxWidth": "100%",
-                "keyboardControl": true,
-                "loop": true,
-                "mousewheelControl": true,
-                "pagination": false,
-                "regionMinHeight": "600px",
-                "scrollBar": false,
-                "coverflowEffectSettings": {
-                    "rotate": 90,
-                    "stretch": 0,
-                    "depth": 100,
-                    "modifier": 1,
-                    "slideShadows": true
-                }
-            };
+        initialize: function (pRegionID, pAjaxID, pNoDataMessage, pImageHeight, pImageSize, pBackgroundColor, pControls, pItems2Submit, pRequireHTMLEscape) {
+
+            util.debug.info({
+                "pRegionID": pRegionID,
+                "pAjaxID": pAjaxID,
+                "pNoDataMessage": pNoDataMessage,
+                "pImageHeight": pImageHeight,
+                "pImageSize": pImageSize,
+                "pBackgroundColor": pBackgroundColor,
+                "pItems2Submit": pItems2Submit,
+                "pRequireHTMLEscape": pRequireHTMLEscape,
+                "pControls": pControls
+            });
+
             var configJSON = {};
 
-            // merge jsons
-            configJSON = util.jsonSaveExtend(stdConfigJSON, pConfigJSON);
-
+            configJSON.imageHeight = pImageHeight;
+            configJSON.imageSize = pImageSize;
+            configJSON.backgroundColor = pBackgroundColor;
             configJSON.ajaxID = pAjaxID;
             configJSON.parentIDSelector = "#" + pRegionID + "-is";
             configJSON.regionID = pRegionID;
             configJSON.noDataMessage = pNoDataMessage;
             configJSON.item2Submit = pItems2Submit;
-
+            configJSON.controls = pControls.split(":");
             configJSON.escapeHTMLRequired = true;
+
+            $(configJSON.parentIDSelector).css("height", configJSON.imageHeight);
+
+            util.loader.start(configJSON.parentIDSelector);
 
             if (pRequireHTMLEscape === false) {
                 configJSON.escapeHTMLRequired = false;
             }
 
-            if (configJSON.buttonColor === 'white') {
-                configJSON.buttonColor = "white"
-            } else {
-                configJSON.buttonColor = "black";
-            }
-
-            if (configJSON.effect === 'coverflow') {
-                configJSON.effect = "coverflow"
-            } else {
-                configJSON.effect = "fade";
-            }
-
             getData(configJSON);
-
 
             // bind refresh event
             $("#" + pRegionID).bind("apexrefresh", function () {
