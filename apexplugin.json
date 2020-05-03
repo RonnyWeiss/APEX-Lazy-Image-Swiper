@@ -1,6 +1,6 @@
 {
     "name": "APEX Lazy Image Swiper",
-    "version": "2.0",
+    "version": "2.0.1",
     "description": "This plug-in is a cool image slider for Oracle APEX. It loads the images only when they are needed (Lazy Load) and can load images from a BLOB table or from a URL. The list of images is passed by SQL statement. URL and download of blob tables can be mixed. In addition, a link URL can be passed, which is called if you double click on the displayed image. Login for Demo is: user-demo / 123456@",
     "keywords": ["oracle", "apex", "plugin", "region", "images", "blob"],
     "homepage": "https://github.com/RonnyWeiss/APEX-Lazy-Image-Swiper",

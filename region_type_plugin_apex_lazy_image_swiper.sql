@@ -27,7 +27,7 @@ prompt APPLICATION 103428 - Ronny's Demo App
 -- Application Export:
 --   Application:     103428
 --   Name:            Ronny's Demo App
---   Date and Time:   13:42 Sunday May 3, 2020
+--   Date and Time:   19:17 Sunday May 3, 2020
 --   Exported By:     RONNYWEISS@OUTLOOK.COM
 --   Flashback:       0
 --   Export Type:     Component Export
@@ -225,7 +225,7 @@ wwv_flow_api.create_plugin(
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'This plug-in is a cool image slider for Oracle APEX. It loads the images only when they are needed (Lazy Load) and can load images from a BLOB table or from a URL. The list of images is passed by SQL statement. URL and download of blob tables can be '
 ||'mixed. In addition, a link URL can be passed, which is called if you double click on the displayed image.'
-,p_version_identifier=>'2.0'
+,p_version_identifier=>'2.0.1'
 ,p_about_url=>'https://github.com/RonnyWeiss/APEX-Lazy-Image-Swiper'
 ,p_files_version=>1461
 );
@@ -424,16 +424,20 @@ wwv_flow_api.create_plugin_std_attribute(
 ,p_name=>'SOURCE_SQL'
 ,p_default_value=>wwv_flow_string.join(wwv_flow_t_varchar2(
 'SELECT',
-'    /* Source type - ''blob'' when load from binary table (Please activate "Use Image source from BLOB Column" in Attributes) and ''url when SRC_VALUE is a link to an image */',
+'    /* Required Source Type',
+'       When SRC_TYPE is static string: ''blob'' and "Use Image source from BLOB Column" in Attributes is activated then you can show images directly from a table',
+'       When SRC_TYPE is static string: ''url'' then SRC_VALUE should be a url to the image in web or e.g. static files */',
 '    ''url'' AS SRC_TYPE,',
-'    /* Primary Key when use load from binary table e.g. idend or file name (Is used in Attributes in (Execute to get Image Sources) or url to image when SRC_TYPE ''url'' */',
-'    ''https://github.com/RonnyWeiss/Apex-Advent-Calendar/raw/master/img/full/0'' ||',
-'    ROWNUM || ''.jpg'' AS SRC_VALUE,',
-'    /* Title of the image */',
+'    /* Required Source Value',
+'       When SRC_TYPE is ''blob'' then the SRC_VALUE should be the Primary Key for the blob file. ',
+'       This is not the blob file column. This Key is needed in "Use Image source from BLOB Column" in Attributes to get the image blob when needed',
+'       When SRC_TYPE is ''url'' then add here the url of the image */',
+'    ''https://github.com/RonnyWeiss/Apex-Advent-Calendar/raw/master/img/full/0'' || ROWNUM || ''.jpg'' AS SRC_VALUE,',
+'    /* Optional Title of the image */',
 '    ''Image Title '' || ROWNUM AS SRC_TITLE,',
-'    /* link on image click */',
+'    /* Optinoal add link for click on images */',
 '    ''https://github.com/RonnyWeiss'' AS LINK,',
-'    /* set time when next img should be loaded, if 0 or null then it''s disabled */',
+'    /* Optional set time span when next img should be loaded, if 0, null or column is missing then autoslide it''s disabled */',
 '    10 AS DURATION',
 'FROM',
 '    DUAL',
@@ -441,19 +445,38 @@ wwv_flow_api.create_plugin_std_attribute(
 '    ROWNUM <= 9'))
 ,p_sql_min_column_count=>2
 ,p_depending_on_has_to_exist=>true
+,p_examples=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'<pre>',
+'SELECT',
+'    /* Required Source Type',
+'       When SRC_TYPE is static string: ''blob'' and "Use Image source from BLOB Column" in Attributes is activated then you can show images directly from a table',
+'       When SRC_TYPE is static string: ''url'' then SRC_VALUE should be a url to the image in web or e.g. static files */',
+'    ''blob'' AS SRC_TYPE,',
+'    /* Required Source Value',
+'       When SRC_TYPE is ''blob'' then the SRC_VALUE should be the Primary Key for the blob file. ',
+'       This is not the blob file column. This Key is needed in "Use Image source from BLOB Column" in Attributes to get the image blob when needed',
+'       When SRC_TYPE is ''url'' then add here the url of the image */',
+'     #PRIMARY_KEY_COLUMN# AS SRC_VALUE',
+'FROM ',
+'  #YOUR_TABLE#',
+'</pre>'))
 ,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
 '<pre>',
 'SELECT',
-'    /* Source type - ''blob'' when load from binary table (Please activate "Use Image source from BLOB Column" in Attributes) and ''url when SRC_VALUE is a link to an image */',
+'    /* Required Source Type',
+'       When SRC_TYPE is static string: ''blob'' and "Use Image source from BLOB Column" in Attributes is activated then you can show images directly from a table',
+'       When SRC_TYPE is static string: ''url'' then SRC_VALUE should be a url to the image in web or e.g. static files */',
 '    ''url'' AS SRC_TYPE,',
-'    /* Primary Key when use load from binary table e.g. idend or file name (Is used in Attributes in (Execute to get Image Sources) or url to image when SRC_TYPE ''url'' */',
-'    ''https://github.com/RonnyWeiss/Apex-Advent-Calendar/raw/master/img/full/0'' ||',
-'    ROWNUM || ''.jpg'' AS SRC_VALUE,',
-'    /* Title of the image */',
+'    /* Required Source Value',
+'       When SRC_TYPE is ''blob'' then the SRC_VALUE should be the Primary Key for the blob file. ',
+'       This is not the blob file column. This Key is needed in "Use Image source from BLOB Column" in Attributes to get the image blob when needed',
+'       When SRC_TYPE is ''url'' then add here the url of the image */',
+'    ''https://github.com/RonnyWeiss/Apex-Advent-Calendar/raw/master/img/full/0'' || ROWNUM || ''.jpg'' AS SRC_VALUE,',
+'    /* Optional Title of the image */',
 '    ''Image Title '' || ROWNUM AS SRC_TITLE,',
-'    /* link on image click */',
+'    /* Optinoal add link for click on images */',
 '    ''https://github.com/RonnyWeiss'' AS LINK,',
-'    /* set time when next img should be loaded, if 0 or null then it''s disabled */',
+'    /* Optional set time span when next img should be loaded, if 0, null or column is missing then autoslide it''s disabled */',
 '    10 AS DURATION',
 'FROM',
 '    DUAL',

@@ -1,6 +1,6 @@
 var apexImageSlider = (function () {
     "use strict";
-    var scriptVersion = "2.0";
+    var scriptVersion = "2.0.1";
     var util = {
         version: "1.2.9",
         isDefinedAndNotNull: function (pInput) {
